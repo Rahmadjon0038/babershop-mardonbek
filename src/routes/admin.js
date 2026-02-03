@@ -1,0 +1,229 @@
+const express = require("express");
+const db = require("../db");
+const adminMiddleware = require("../middleware/admin");
+
+const router = express.Router();
+
+/**
+ * @swagger
+ * /admin/barbershops:
+ *   post:
+ *     summary: Sartaroshxona yaratish (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [nomi, manzil, telefon, narx, ochilishVaqti, yopilishVaqti, ownerId]
+ *             properties:
+ *               nomi: { type: string, description: "Nomi" }
+ *               rasm: { type: string, description: "Rasm URL" }
+ *               manzil: { type: string, description: "Manzil" }
+ *               telefon: { type: string, description: "Telefon" }
+ *               malumot: { type: string, description: "Tavsif" }
+ *               narx: { type: integer, description: "Narx" }
+ *               ochilishVaqti: { type: string, example: "09:00" }
+ *               yopilishVaqti: { type: string, example: "20:00" }
+ *               ownerId: { type: integer, description: "Barber user ID" }
+ *     responses:
+ *       201:
+ *         description: Sartaroshxona yaratildi
+ *       403:
+ *         description: Faqat adminlar
+ */
+router.post("/barbershops", adminMiddleware, (req, res) => {
+  const {
+    nomi,
+    rasm,
+    manzil,
+    telefon,
+    malumot,
+    narx,
+    ochilishVaqti,
+    yopilishVaqti,
+    ownerId,
+  } = req.body || {};
+
+  if (!nomi || !manzil || !telefon || !narx || !ochilishVaqti || !yopilishVaqti || !ownerId) {
+    return res.status(400).json({
+      xabar: "Barcha majburiy maydonlarni to'ldiring.",
+    });
+  }
+
+  // Owner barber ekanligini tekshirish
+  const owner = db.prepare("SELECT role FROM users WHERE id = ?").get(ownerId);
+  if (!owner || owner.role !== "barber") {
+    return res.status(400).json({
+      xabar: "Owner barber bo'lishi kerak.",
+    });
+  }
+
+  const insert = db.prepare(
+    `INSERT INTO barbershops 
+      (name, image, address, phone, description, price, opening_time, closing_time, owner_id) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  );
+  const result = insert.run(
+    nomi,
+    rasm || null,
+    manzil,
+    telefon,
+    malumot || null,
+    narx,
+    ochilishVaqti,
+    yopilishVaqti,
+    ownerId
+  );
+
+  const sartaroshxona = db
+    .prepare(
+      `SELECT 
+        id,
+        name AS nomi,
+        image AS rasm,
+        address AS manzil,
+        phone AS telefon,
+        description AS malumot,
+        price AS narx,
+        opening_time AS ochilishVaqti,
+        closing_time AS yopilishVaqti
+      FROM barbershops WHERE id = ?`
+    )
+    .get(result.lastInsertRowid);
+
+  return res.status(201).json({
+    xabar: "Sartaroshxona muvaffaqiyatli yaratildi.",
+    sartaroshxona,
+  });
+});
+
+/**
+ * @swagger
+ * /admin/barbershops/{id}:
+ *   put:
+ *     summary: Sartaroshxonani yangilash (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Yangilandi
+ *       403:
+ *         description: Faqat adminlar
+ */
+router.put("/barbershops/:id", adminMiddleware, (req, res) => {
+  const { id } = req.params;
+  const updates = req.body || {};
+
+  const fields = [];
+  const values = [];
+
+  if (updates.nomi) {
+    fields.push("name = ?");
+    values.push(updates.nomi);
+  }
+  if (updates.rasm !== undefined) {
+    fields.push("image = ?");
+    values.push(updates.rasm);
+  }
+  if (updates.manzil) {
+    fields.push("address = ?");
+    values.push(updates.manzil);
+  }
+  if (updates.telefon) {
+    fields.push("phone = ?");
+    values.push(updates.telefon);
+  }
+  if (updates.malumot !== undefined) {
+    fields.push("description = ?");
+    values.push(updates.malumot);
+  }
+  if (updates.narx) {
+    fields.push("price = ?");
+    values.push(updates.narx);
+  }
+  if (updates.ochilishVaqti) {
+    fields.push("opening_time = ?");
+    values.push(updates.ochilishVaqti);
+  }
+  if (updates.yopilishVaqti) {
+    fields.push("closing_time = ?");
+    values.push(updates.yopilishVaqti);
+  }
+
+  if (fields.length === 0) {
+    return res.status(400).json({ xabar: "Yangilanish uchun maydon yo'q." });
+  }
+
+  values.push(id);
+  const query = `UPDATE barbershops SET ${fields.join(", ")} WHERE id = ?`;
+  db.prepare(query).run(...values);
+
+  const sartaroshxona = db
+    .prepare(
+      `SELECT 
+        id,
+        name AS nomi,
+        image AS rasm,
+        address AS manzil,
+        phone AS telefon,
+        description AS malumot,
+        price AS narx,
+        opening_time AS ochilishVaqti,
+        closing_time AS yopilishVaqti
+      FROM barbershops WHERE id = ?`
+    )
+    .get(id);
+
+  return res.json({
+    xabar: "Sartaroshxona yangilandi.",
+    sartaroshxona,
+  });
+});
+
+/**
+ * @swagger
+ * /admin/barbershops/{id}:
+ *   delete:
+ *     summary: Sartaroshxonani o'chirish (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: O'chirildi
+ *       403:
+ *         description: Faqat adminlar
+ */
+router.delete("/barbershops/:id", adminMiddleware, (req, res) => {
+  const { id } = req.params;
+
+  // Soft delete
+  db.prepare("UPDATE barbershops SET is_active = 0 WHERE id = ?").run(id);
+
+  return res.json({ xabar: "Sartaroshxona o'chirildi." });
+});
+
+module.exports = router;
