@@ -26,7 +26,7 @@ router.get("/", authMiddleware, (req, res) => {
   const userId = req.user.sub;
   const foydalanuvchi = db
     .prepare(
-      "SELECT id, phone, name, created_at AS yaratilganVaqt FROM users WHERE id = ?"
+      "SELECT id, phone, name, role, created_at AS yaratilganVaqt FROM users WHERE id = ?"
     )
     .get(userId);
 

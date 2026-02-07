@@ -132,6 +132,12 @@ router.post("/login", (req, res) => {
     xabar: "Muvaffaqiyatli login qildingiz.",
     kirishToken: tokens.accessToken,
     yangilanishToken: tokens.refreshToken,
+    foydalanuvchi: {
+      id: user.id,
+      phone: user.phone,
+      name: user.name,
+      role: user.role || 'user'
+    }
   });
 });
 

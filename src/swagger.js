@@ -40,6 +40,15 @@ const options = {
             xabar: { type: "string", example: "Muvaffaqiyatli login qildingiz." },
             kirishToken: { type: "string", description: "Access token (15 daqiqa)" },
             yangilanishToken: { type: "string", description: "Refresh token (7 kun)" },
+            foydalanuvchi: {
+              type: "object",
+              properties: {
+                id: { type: "integer" },
+                phone: { type: "string", description: "Telefon raqam" },
+                name: { type: "string", description: "Ism" },
+                role: { type: "string", description: "Foydalanuvchi roli (admin, barber, user)", example: "user" },
+              },
+            },
           },
         },
         UserResponse: {
@@ -52,6 +61,7 @@ const options = {
                 id: { type: "integer" },
                 phone: { type: "string", description: "Telefon raqam" },
                 name: { type: "string", description: "Ism" },
+                role: { type: "string", description: "Foydalanuvchi roli (admin, barber, user)", example: "user" },
                 yaratilganVaqt: { type: "string", description: "Ro'yxatdan o'tgan vaqt" },
               },
             },
