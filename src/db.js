@@ -1,5 +1,6 @@
 const path = require("path");
 const Database = require("better-sqlite3");
+const bcrypt = require("bcryptjs");
 
 const dbPath = path.join(__dirname, "..", "data.sqlite");
 const db = new Database(dbPath);
@@ -84,5 +85,41 @@ db.prepare(
   )
 `
 ).run();
+
+function ensureDefaultUsers() {
+  const defaults = [
+    {
+      phone: process.env.DEFAULT_ADMIN_PHONE || "+998900000000",
+      name: process.env.DEFAULT_ADMIN_NAME || "Default Admin",
+      password: process.env.DEFAULT_ADMIN_PASSWORD || "admin123",
+      role: "admin",
+    },
+    {
+      phone: process.env.DEFAULT_BARBER_PHONE || "+998900000001",
+      name: process.env.DEFAULT_BARBER_NAME || "Default Barber",
+      password: process.env.DEFAULT_BARBER_PASSWORD || "barber123",
+      role: "barber",
+    },
+  ];
+
+  const findUserByPhone = db.prepare("SELECT id FROM users WHERE phone = ?");
+  const createUser = db.prepare(
+    "INSERT INTO users (phone, name, password_hash, role) VALUES (?, ?, ?, ?)"
+  );
+
+  for (const user of defaults) {
+    const existing = findUserByPhone.get(user.phone);
+    if (!existing) {
+      const passwordHash = bcrypt.hashSync(user.password, 10);
+      createUser.run(user.phone, user.name, passwordHash, user.role);
+    }
+
+    console.log(
+      `[default-${user.role}] phone: ${user.phone} | password: ${user.password}`
+    );
+  }
+}
+
+ensureDefaultUsers();
 
 module.exports = db;

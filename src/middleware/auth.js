@@ -14,7 +14,19 @@ function authMiddleware(req, res, next) {
 
   try {
     const payload = jwt.verify(token, accessSecret);
-    req.user = payload;
+    const normalizedUserId = payload.sub ?? payload.id;
+    if (!normalizedUserId) {
+      return res.status(401).json({
+        xabar: "Access token ichida foydalanuvchi ID topilmadi.",
+      });
+    }
+
+    req.user = {
+      ...payload,
+      sub: normalizedUserId,
+      id: normalizedUserId,
+      userId: normalizedUserId,
+    };
     return next();
   } catch (error) {
     return res.status(401).json({

@@ -25,7 +25,7 @@ const router = express.Router();
  *         description: Sartaroshxona topilmadi
  */
 router.get("/barbershop", barberMiddleware, (req, res) => {
-  const userId = req.user.sub;
+  const userId = req.user.id;
 
   const sartaroshxona = db
     .prepare(
@@ -90,8 +90,14 @@ router.get("/barbershop", barberMiddleware, (req, res) => {
  *         description: Sartaroshxona topilmadi
  */
 router.put("/barbershop", barberMiddleware, (req, res) => {
-  const userId = req.user.sub;
+  const userId = req.user.id;
   const updates = req.body || {};
+
+  if (updates.narx !== undefined && (Number.isNaN(Number(updates.narx)) || Number(updates.narx) <= 0)) {
+    return res.status(400).json({
+      xabar: "Narx musbat son bo'lishi kerak.",
+    });
+  }
 
   const sartaroshxona = db
     .prepare("SELECT id FROM barbershops WHERE owner_id = ? AND is_active = 1")
@@ -124,9 +130,9 @@ router.put("/barbershop", barberMiddleware, (req, res) => {
     fields.push("description = ?");
     values.push(updates.malumot);
   }
-  if (updates.narx) {
+  if (updates.narx !== undefined) {
     fields.push("price = ?");
-    values.push(updates.narx);
+    values.push(Number(updates.narx));
   }
   if (updates.ochilishVaqti) {
     fields.push("opening_time = ?");
@@ -195,7 +201,7 @@ router.put("/barbershop", barberMiddleware, (req, res) => {
  *         description: Sartaroshxona topilmadi
  */
 router.get("/appointments", barberMiddleware, (req, res) => {
-  const userId = req.user.sub;
+  const userId = req.user.id;
   const { date } = req.query;
   const targetDate = date || new Date().toISOString().split("T")[0];
 
@@ -259,7 +265,7 @@ router.get("/appointments", barberMiddleware, (req, res) => {
  *         description: Navbat topilmadi
  */
 router.put("/appointments/:id/complete", barberMiddleware, (req, res) => {
-  const userId = req.user.sub;
+  const userId = req.user.id;
   const { id } = req.params;
 
   const sartaroshxona = db
@@ -318,7 +324,7 @@ router.put("/appointments/:id/complete", barberMiddleware, (req, res) => {
  *         description: Navbat topilmadi
  */
 router.put("/appointments/:id/move-tomorrow", barberMiddleware, (req, res) => {
-  const userId = req.user.sub;
+  const userId = req.user.id;
   const { id } = req.params;
 
   const sartaroshxona = db
@@ -380,7 +386,7 @@ router.put("/appointments/:id/move-tomorrow", barberMiddleware, (req, res) => {
  *         description: Sartaroshxona topilmadi
  */
 router.get("/appointments/history", barberMiddleware, (req, res) => {
-  const userId = req.user.sub;
+  const userId = req.user.id;
   const { days = 7 } = req.query;
 
   const sartaroshxona = db

@@ -48,9 +48,15 @@ router.post("/barbershops", adminMiddleware, (req, res) => {
     ownerId,
   } = req.body || {};
 
-  if (!nomi || !manzil || !telefon || !narx || !ochilishVaqti || !yopilishVaqti || !ownerId) {
+  if (!nomi || !manzil || !telefon || narx === undefined || !ochilishVaqti || !yopilishVaqti || ownerId === undefined) {
     return res.status(400).json({
       xabar: "Barcha majburiy maydonlarni to'ldiring.",
+    });
+  }
+
+  if (Number.isNaN(Number(narx)) || Number(narx) <= 0) {
+    return res.status(400).json({
+      xabar: "Narx musbat son bo'lishi kerak.",
     });
   }
 
@@ -73,7 +79,7 @@ router.post("/barbershops", adminMiddleware, (req, res) => {
     manzil,
     telefon,
     malumot || null,
-    narx,
+    Number(narx),
     ochilishVaqti,
     yopilishVaqti,
     ownerId
@@ -131,6 +137,12 @@ router.put("/barbershops/:id", adminMiddleware, (req, res) => {
   const { id } = req.params;
   const updates = req.body || {};
 
+  if (updates.narx !== undefined && (Number.isNaN(Number(updates.narx)) || Number(updates.narx) <= 0)) {
+    return res.status(400).json({
+      xabar: "Narx musbat son bo'lishi kerak.",
+    });
+  }
+
   const fields = [];
   const values = [];
 
@@ -154,9 +166,9 @@ router.put("/barbershops/:id", adminMiddleware, (req, res) => {
     fields.push("description = ?");
     values.push(updates.malumot);
   }
-  if (updates.narx) {
+  if (updates.narx !== undefined) {
     fields.push("price = ?");
-    values.push(updates.narx);
+    values.push(Number(updates.narx));
   }
   if (updates.ochilishVaqti) {
     fields.push("opening_time = ?");

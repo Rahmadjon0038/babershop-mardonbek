@@ -21,7 +21,19 @@ function barberMiddleware(req, res, next) {
       });
     }
     
-    req.user = payload;
+    const normalizedUserId = payload.sub ?? payload.id;
+    if (!normalizedUserId) {
+      return res.status(401).json({
+        xabar: "Access token ichida foydalanuvchi ID topilmadi.",
+      });
+    }
+
+    req.user = {
+      ...payload,
+      sub: normalizedUserId,
+      id: normalizedUserId,
+      userId: normalizedUserId,
+    };
     return next();
   } catch (error) {
     return res.status(401).json({
