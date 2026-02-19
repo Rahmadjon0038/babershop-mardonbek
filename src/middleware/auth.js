@@ -2,9 +2,27 @@ const jwt = require("jsonwebtoken");
 
 const accessSecret = process.env.JWT_ACCESS_SECRET || "dev_access_secret";
 
+function extractAccessToken(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || typeof authHeader !== "string") {
+    return "";
+  }
+
+  const normalized = authHeader.trim();
+  if (!normalized) {
+    return "";
+  }
+
+  const bearerMatch = normalized.match(/^Bearer\s+(.+)$/i);
+  if (bearerMatch) {
+    return bearerMatch[1].trim();
+  }
+
+  return normalized;
+}
+
 function authMiddleware(req, res, next) {
-  const authHeader = req.headers.authorization || "";
-  const [, token] = authHeader.split(" ");
+  const token = extractAccessToken(req);
 
   if (!token) {
     return res.status(401).json({
