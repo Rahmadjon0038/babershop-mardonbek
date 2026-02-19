@@ -102,16 +102,24 @@ function ensureDefaultUsers() {
     },
   ];
 
-  const findUserByPhone = db.prepare("SELECT id FROM users WHERE phone = ?");
+  const findUserByPhone = db.prepare(
+    "SELECT id, password_hash, name, role FROM users WHERE phone = ?"
+  );
   const createUser = db.prepare(
     "INSERT INTO users (phone, name, password_hash, role) VALUES (?, ?, ?, ?)"
+  );
+  const updateUser = db.prepare(
+    "UPDATE users SET name = ?, password_hash = ?, role = ? WHERE id = ?"
   );
 
   for (const user of defaults) {
     const existing = findUserByPhone.get(user.phone);
+    const passwordHash = bcrypt.hashSync(user.password, 10);
+
     if (!existing) {
-      const passwordHash = bcrypt.hashSync(user.password, 10);
       createUser.run(user.phone, user.name, passwordHash, user.role);
+    } else {
+      updateUser.run(user.name, passwordHash, user.role, existing.id);
     }
 
     console.log(

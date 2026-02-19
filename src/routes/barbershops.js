@@ -500,11 +500,18 @@ router.put("/:id/working-hours", barberMiddleware, (req, res) => {
  */
 router.get("/:id/employees", barberMiddleware, (req, res) => {
   const { id } = req.params;
+  const shopId = Number(id);
+
+  if (!Number.isInteger(shopId) || shopId <= 0) {
+    return res.status(400).json({
+      xabar: "Sartaroshxona ID noto'g'ri."
+    });
+  }
 
   // Sartaroshxonani tekshirish
   const barbershop = db
     .prepare("SELECT * FROM barbershops WHERE id = ? AND is_active = 1")
-    .get(id);
+    .get(shopId);
 
   if (!barbershop) {
     return res.status(404).json({
@@ -528,12 +535,17 @@ router.get("/:id/employees", barberMiddleware, (req, res) => {
           is_active AS faol,
           created_at AS yaratilganVaqt
         FROM employees 
-        WHERE barbershop_id = ?
+        WHERE barbershop_id = ? AND is_active = 1
         ORDER BY created_at DESC
       `)
-      .all(id);
+      .all(shopId);
 
-    return res.json({ ishchilar: employees });
+    const normalizedEmployees = employees.map((employee) => ({
+      ...employee,
+      faol: Boolean(employee.faol),
+    }));
+
+    return res.json({ ishchilar: normalizedEmployees });
 
   } catch (error) {
     console.error("Ishchilarni olishda xato:", error);
@@ -572,11 +584,25 @@ router.get("/:id/employees", barberMiddleware, (req, res) => {
  */
 router.delete("/:id/employees/:employeeId", barberMiddleware, (req, res) => {
   const { id, employeeId } = req.params;
+  const shopId = Number(id);
+  const staffId = Number(employeeId);
+
+  if (!Number.isInteger(shopId) || shopId <= 0) {
+    return res.status(400).json({
+      xabar: "Sartaroshxona ID noto'g'ri."
+    });
+  }
+
+  if (!Number.isInteger(staffId) || staffId <= 0) {
+    return res.status(400).json({
+      xabar: "Ishchi ID noto'g'ri."
+    });
+  }
 
   // Sartaroshxonani tekshirish
   const barbershop = db
     .prepare("SELECT * FROM barbershops WHERE id = ? AND is_active = 1")
-    .get(id);
+    .get(shopId);
 
   if (!barbershop) {
     return res.status(404).json({
@@ -593,8 +619,8 @@ router.delete("/:id/employees/:employeeId", barberMiddleware, (req, res) => {
 
   // Ishchini tekshirish
   const employee = db
-    .prepare("SELECT * FROM employees WHERE id = ? AND barbershop_id = ?")
-    .get(employeeId, id);
+    .prepare("SELECT * FROM employees WHERE id = ? AND barbershop_id = ? AND is_active = 1")
+    .get(staffId, shopId);
 
   if (!employee) {
     return res.status(404).json({
@@ -610,7 +636,7 @@ router.delete("/:id/employees/:employeeId", barberMiddleware, (req, res) => {
       WHERE id = ? AND barbershop_id = ?
     `);
     
-    updateStmt.run(employeeId, id);
+    updateStmt.run(staffId, shopId);
 
     return res.json({
       xabar: "Ishchi muvaffaqiyatli o'chirildi."
