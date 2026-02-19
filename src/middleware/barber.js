@@ -13,12 +13,21 @@ function extractAccessToken(req) {
     return "";
   }
 
+  let token = normalized;
   const bearerMatch = normalized.match(/^Bearer\s+(.+)$/i);
   if (bearerMatch) {
-    return bearerMatch[1].trim();
+    token = bearerMatch[1].trim();
   }
 
-  return normalized;
+  // Swagger/Postman noto'g'ri kiritilgan "Bearer Bearer <token>" holatini ham qo'llab-quvvatlash
+  while (/^Bearer\s+/i.test(token)) {
+    token = token.replace(/^Bearer\s+/i, "").trim();
+  }
+
+  // Token qo'shtirnoq bilan yuborilgan bo'lsa tozalash
+  token = token.replace(/^"(.*)"$/, "$1").trim();
+
+  return token;
 }
 
 function barberMiddleware(req, res, next) {

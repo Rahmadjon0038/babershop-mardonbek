@@ -12,6 +12,31 @@ const barberRoutes = require("./routes/barber");
 
 const app = express();
 
+const allowedOrigins = (process.env.CORS_ORIGIN || "*")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use((req, res, next) => {
+  const requestOrigin = req.headers.origin;
+  const isWildcard = allowedOrigins.includes("*");
+  const isAllowedOrigin = isWildcard || (requestOrigin && allowedOrigins.includes(requestOrigin));
+
+  if (isAllowedOrigin) {
+    res.header("Access-Control-Allow-Origin", isWildcard ? "*" : requestOrigin);
+  }
+
+  res.header("Vary", "Origin");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  return next();
+});
+
 app.use(express.json());
 
 app.get("/", (req, res) => {

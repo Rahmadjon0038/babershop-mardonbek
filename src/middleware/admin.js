@@ -13,12 +13,19 @@ function extractAccessToken(req) {
     return "";
   }
 
+  let token = normalized;
   const bearerMatch = normalized.match(/^Bearer\s+(.+)$/i);
   if (bearerMatch) {
-    return bearerMatch[1].trim();
+    token = bearerMatch[1].trim();
   }
 
-  return normalized;
+  while (/^Bearer\s+/i.test(token)) {
+    token = token.replace(/^Bearer\s+/i, "").trim();
+  }
+
+  token = token.replace(/^"(.*)"$/, "$1").trim();
+
+  return token;
 }
 
 function adminMiddleware(req, res, next) {
