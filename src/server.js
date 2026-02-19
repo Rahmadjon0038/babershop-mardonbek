@@ -10,7 +10,10 @@ const appointmentsRoutes = require("./routes/appointments");
 const adminRoutes = require("./routes/admin");
 const barberRoutes = require("./routes/barber");
 
+const cors  = require('cors')
+
 const app = express();
+app.use(cors())
 
 const allowedOrigins = (process.env.CORS_ORIGIN || "*")
   .split(",")
