@@ -27,7 +27,7 @@ Server ishga tushganda default foydalanuvchilar avtomatik yaratiladi (agar shu t
 Bu qiymatlarni `.env` ichida `DEFAULT_ADMIN_*` va `DEFAULT_BARBER_*` o'zgaruvchilari bilan o'zgartirishingiz mumkin.
 
 4. Swagger hujjat:
-`http://localhost:3000/docs`
+`http://localhost:309/docs`
 
 ## API bilan ishlash tartibi (yangi dasturchi uchun)
 
@@ -81,13 +81,13 @@ Bu qiymatlarni `.env` ichida `DEFAULT_ADMIN_*` va `DEFAULT_BARBER_*` o'zgaruvchi
 ## So'rov namunasi
 
 ```bash
-curl -X POST http://localhost:3000/auth/login \
+curl -X POST http://localhost:309/auth/login \
   -H "Content-Type: application/json" \
   -d '{"phone":"+998901112233","password":"123456"}'
 ```
 
 ```bash
-curl http://localhost:3000/profile \
+curl http://localhost:309/profile \
   -H "Authorization: Bearer TOKEN_SHU_YERGA"
 ```
 

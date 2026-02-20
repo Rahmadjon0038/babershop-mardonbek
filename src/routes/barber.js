@@ -266,23 +266,28 @@ router.get("/appointments", barberMiddleware, (req, res) => {
  */
 router.put("/appointments/:id/complete", barberMiddleware, (req, res) => {
   const userId = req.user.id;
+  const userRole = req.user.role;
   const { id } = req.params;
 
-  const sartaroshxona = db
-    .prepare("SELECT id FROM barbershops WHERE owner_id = ? AND is_active = 1")
-    .get(userId);
-
-  if (!sartaroshxona) {
-    return res.status(403).json({ xabar: "Ruxsat yo'q." });
-  }
-
-  // Navbat shu sartaroshxonaga tegishli ekanligini tekshirish
   const navbat = db
-    .prepare("SELECT * FROM appointments WHERE id = ? AND barbershop_id = ?")
-    .get(id, sartaroshxona.id);
+    .prepare(
+      `SELECT a.id, a.status, b.owner_id
+       FROM appointments a
+       JOIN barbershops b ON b.id = a.barbershop_id
+       WHERE a.id = ? AND b.is_active = 1`
+    )
+    .get(id);
 
   if (!navbat) {
     return res.status(404).json({ xabar: "Navbat topilmadi." });
+  }
+
+  if (userRole !== "admin" && Number(navbat.owner_id) !== Number(userId)) {
+    return res.status(403).json({ xabar: "Ruxsat yo'q." });
+  }
+
+  if (navbat.status === "completed") {
+    return res.status(400).json({ xabar: "Bu navbat allaqachon tugatilgan." });
   }
 
   const now = new Date().toISOString();
