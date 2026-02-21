@@ -51,6 +51,21 @@ const options = {
             },
           },
         },
+        RefreshTokenRequest: {
+          type: "object",
+          required: ["refreshToken"],
+          properties: {
+            refreshToken: { type: "string", description: "Refresh token" },
+          },
+        },
+        RefreshResponse: {
+          type: "object",
+          properties: {
+            xabar: { type: "string", example: "Tokenlar yangilandi." },
+            kirishToken: { type: "string", description: "Yangi access token (15 daqiqa)" },
+            yangilanishToken: { type: "string", description: "Yangi refresh token (7 kun)" },
+          },
+        },
         UserResponse: {
           type: "object",
           properties: {
