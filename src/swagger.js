@@ -172,6 +172,8 @@ const options = {
                 properties: {
                   sana: { type: "string", example: "2026-02-10", description: "Navbat sanasi" },
                   vaqt: { type: "string", example: "14:00", description: "Navbat vaqti" },
+                  holat: { type: "string", example: "completed", description: "confirmed/completed/rescheduled/cancelled" },
+                  tugatilganVaqt: { type: "string", nullable: true, description: "Yakunlangan vaqt (agar completed bo'lsa)" },
                   sartaroshxonaNomi: { type: "string", description: "Sartaroshxona nomi" },
                   manzil: { type: "string", description: "Manzil" },
                   telefon: { type: "string", description: "Sartaroshxona telefoni" },

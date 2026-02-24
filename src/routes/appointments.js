@@ -155,6 +155,8 @@ router.get("/my", authMiddleware, (req, res) => {
       `SELECT 
         a.appointment_date AS sana,
         a.appointment_time AS vaqt,
+        a.status AS holat,
+        a.completed_at AS tugatilganVaqt,
         b.name AS sartaroshxonaNomi,
         b.address AS manzil,
         b.phone AS telefon
