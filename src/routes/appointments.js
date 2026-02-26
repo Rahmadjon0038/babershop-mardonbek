@@ -35,7 +35,7 @@ const router = express.Router();
  */
 router.post("/", authMiddleware, (req, res) => {
   const userId = req.user.sub;
-  const { barbershopId } = req.body || {};
+  const { barbershopId, sana } = req.body || {};
 
   if (!barbershopId) {
     return res.status(400).json({
@@ -43,8 +43,21 @@ router.post("/", authMiddleware, (req, res) => {
     });
   }
 
-  // Bugungi sana
+  const selectedDate = sana || getUzbekistanDate();
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+  if (!dateRegex.test(selectedDate) || Number.isNaN(Date.parse(`${selectedDate}T00:00:00Z`))) {
+    return res.status(400).json({
+      xabar: "sana noto'g'ri formatda. YYYY-MM-DD yuboring.",
+    });
+  }
+
   const today = getUzbekistanDate();
+  if (selectedDate < today) {
+    return res.status(400).json({
+      xabar: "O'tgan sana uchun navbat olib bo'lmaydi.",
+    });
+  }
 
   // Birinchi ishchini tanlash (keyinchalik load balancing qilish mumkin)
   const employee = db
@@ -59,7 +72,7 @@ router.post("/", authMiddleware, (req, res) => {
     });
   }
 
-  // Bugungi oxirgi navbat vaqtini olish
+  // Tanlangan sana uchun oxirgi navbat vaqtini olish
   const lastAppointment = db
     .prepare(
       `SELECT appointment_time FROM appointments 
@@ -69,7 +82,7 @@ router.post("/", authMiddleware, (req, res) => {
        ORDER BY appointment_time DESC 
        LIMIT 1`
     )
-    .get(barbershopId, today);
+    .get(barbershopId, selectedDate);
 
   // Keyingi bo'sh vaqtni hisoblash
   let nextTime;
@@ -94,11 +107,11 @@ router.post("/", authMiddleware, (req, res) => {
     userId,
     barbershopId,
     employee.id,
-    today,
+    selectedDate,
     nextTime
   );
 
-  // Bugungi navbat raqamini hisoblash
+  // Tanlangan sana bo'yicha navbat raqamini hisoblash
   const navbatRaqami = db
     .prepare(
       `SELECT COUNT(*) as count FROM appointments 
@@ -107,7 +120,7 @@ router.post("/", authMiddleware, (req, res) => {
          AND status != 'cancelled'
          AND appointment_time <= ?`
     )
-    .get(barbershopId, today, nextTime).count;
+    .get(barbershopId, selectedDate, nextTime).count;
 
   const navbat = db
     .prepare(

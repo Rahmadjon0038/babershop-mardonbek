@@ -60,7 +60,7 @@ Bu qiymatlarni `.env` ichida `DEFAULT_ADMIN_*` va `DEFAULT_BARBER_*` o'zgaruvchi
 - `PUT /barbershops/:id/working-hours` - ish vaqtlarini yangilash
 
 ### Appointments
-- `POST /appointments` - navbat olish
+- `POST /appointments` - navbat olish (`barbershopId` majburiy, `sana` ixtiyoriy: `YYYY-MM-DD`)
 - `GET /appointments/my` - foydalanuvchining navbatlari
 
 ### Barber panel

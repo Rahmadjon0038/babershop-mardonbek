@@ -144,6 +144,7 @@ const options = {
           required: ["barbershopId"],
           properties: {
             barbershopId: { type: "integer", example: 1, description: "Sartaroshxona ID" },
+            sana: { type: "string", example: "2026-02-28", description: "Navbat sanasi (YYYY-MM-DD). Yuborilmasa bugungi sana olinadi." },
           },
         },
         AppointmentResponse: {
@@ -153,7 +154,7 @@ const options = {
             navbat: {
               type: "object",
               properties: {
-                sana: { type: "string", example: "2026-02-03", description: "Navbat sanasi (bugun)" },
+                sana: { type: "string", example: "2026-02-03", description: "Navbat sanasi" },
                 vaqt: { type: "string", example: "14:00", description: "Avtomatik belgilangan vaqt" },
                 sartaroshxonaNomi: { type: "string", description: "Sartaroshxona nomi" },
                 manzil: { type: "string", description: "Sartaroshxona manzili" },
