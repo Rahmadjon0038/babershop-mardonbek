@@ -1,6 +1,7 @@
 const express = require("express");
 const db = require("../db");
 const authMiddleware = require("../middleware/auth");
+const { getUzbekistanDate } = require("../utils/timezone");
 
 const router = express.Router();
 
@@ -43,7 +44,7 @@ router.post("/", authMiddleware, (req, res) => {
   }
 
   // Bugungi sana
-  const today = new Date().toISOString().split("T")[0];
+  const today = getUzbekistanDate();
 
   // Birinchi ishchini tanlash (keyinchalik load balancing qilish mumkin)
   const employee = db
@@ -74,9 +75,10 @@ router.post("/", authMiddleware, (req, res) => {
   let nextTime;
   if (lastAppointment) {
     const [hours, minutes] = lastAppointment.appointment_time.split(":");
-    const lastTime = new Date();
-    lastTime.setHours(parseInt(hours), parseInt(minutes) + 30, 0); // 30 daqiqa interval
-    nextTime = `${String(lastTime.getHours()).padStart(2, "0")}:${String(lastTime.getMinutes()).padStart(2, "0")}`;
+    const nextTotalMinutes = (Number(hours) * 60 + Number(minutes) + 30) % (24 * 60); // 30 daqiqa interval
+    const nextHours = Math.floor(nextTotalMinutes / 60);
+    const nextMinutes = nextTotalMinutes % 60;
+    nextTime = `${String(nextHours).padStart(2, "0")}:${String(nextMinutes).padStart(2, "0")}`;
   } else {
     // Birinchi navbat - 09:00 dan boshlash
     nextTime = "09:00";

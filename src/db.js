@@ -15,7 +15,7 @@ db.prepare(
     name TEXT NOT NULL,
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'user',
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (datetime('now', '+5 hours'))
   )
 `
 ).run();
@@ -34,7 +34,7 @@ db.prepare(
     closing_time TEXT NOT NULL,
     owner_id INTEGER,
     is_active INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    created_at TEXT NOT NULL DEFAULT (datetime('now', '+5 hours')),
     FOREIGN KEY (owner_id) REFERENCES users(id)
   )
 `
@@ -47,7 +47,7 @@ db.prepare(
     barbershop_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     is_active INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    created_at TEXT NOT NULL DEFAULT (datetime('now', '+5 hours')),
     FOREIGN KEY (barbershop_id) REFERENCES barbershops(id)
   )
 `
@@ -78,7 +78,7 @@ db.prepare(
     appointment_time TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'confirmed',
     completed_at TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    created_at TEXT NOT NULL DEFAULT (datetime('now', '+5 hours')),
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (barbershop_id) REFERENCES barbershops(id),
     FOREIGN KEY (employee_id) REFERENCES employees(id)

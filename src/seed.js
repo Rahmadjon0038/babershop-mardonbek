@@ -1,5 +1,6 @@
 const db = require("./db");
 const bcrypt = require("bcryptjs");
+const { getUzbekistanDate } = require("./utils/timezone");
 
 // Test ma'lumotlar qo'shish
 function seedDatabase() {
@@ -88,7 +89,7 @@ function seedDatabase() {
     console.log("✓ Ish kunlari qo'shildi");
 
     // Bugungi navbatlar
-    const today = new Date().toISOString().split("T")[0];
+    const today = getUzbekistanDate();
     
     db.prepare(
       "INSERT INTO appointments (user_id, barbershop_id, employee_id, appointment_date, appointment_time, status) VALUES (?, ?, ?, ?, ?, ?)"

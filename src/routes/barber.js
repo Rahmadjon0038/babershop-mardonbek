@@ -1,6 +1,7 @@
 const express = require("express");
 const db = require("../db");
 const barberMiddleware = require("../middleware/barber");
+const { getUzbekistanDate, getUzbekistanDateTime } = require("../utils/timezone");
 
 const router = express.Router();
 
@@ -203,7 +204,7 @@ router.put("/barbershop", barberMiddleware, (req, res) => {
 router.get("/appointments", barberMiddleware, (req, res) => {
   const userId = req.user.id;
   const { date } = req.query;
-  const targetDate = date || new Date().toISOString().split("T")[0];
+  const targetDate = date || getUzbekistanDate();
 
   const sartaroshxona = db
     .prepare("SELECT id FROM barbershops WHERE owner_id = ? AND is_active = 1")
@@ -290,7 +291,7 @@ router.put("/appointments/:id/complete", barberMiddleware, (req, res) => {
     return res.status(400).json({ xabar: "Bu navbat allaqachon tugatilgan." });
   }
 
-  const now = new Date().toISOString();
+  const now = getUzbekistanDateTime();
   db.prepare(
     "UPDATE appointments SET status = 'completed', completed_at = ? WHERE id = ?"
   ).run(now, id);
@@ -349,9 +350,7 @@ router.put("/appointments/:id/move-tomorrow", barberMiddleware, (req, res) => {
   }
 
   // Ertangi sanani hisoblash
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowDate = tomorrow.toISOString().split("T")[0];
+  const tomorrowDate = getUzbekistanDate(1);
 
   db.prepare(
     "UPDATE appointments SET appointment_date = ?, status = 'rescheduled' WHERE id = ?"
@@ -393,6 +392,8 @@ router.put("/appointments/:id/move-tomorrow", barberMiddleware, (req, res) => {
 router.get("/appointments/history", barberMiddleware, (req, res) => {
   const userId = req.user.id;
   const { days = 7 } = req.query;
+  const parsedDays = Number.parseInt(days, 10);
+  const normalizedDays = Math.max(0, Number.isNaN(parsedDays) ? 7 : parsedDays);
 
   const sartaroshxona = db
     .prepare("SELECT id FROM barbershops WHERE owner_id = ? AND is_active = 1")
@@ -414,10 +415,13 @@ router.get("/appointments/history", barberMiddleware, (req, res) => {
       FROM appointments a
       JOIN users u ON a.user_id = u.id
       WHERE a.barbershop_id = ? 
-        AND DATE(a.appointment_date) >= DATE('now', '-' || ? || ' days')
+        AND DATE(a.appointment_date) >= ?
       ORDER BY a.appointment_date DESC, a.appointment_time DESC`
     )
-    .all(sartaroshxona.id, days);
+    .all(
+      sartaroshxona.id,
+      getUzbekistanDate(-normalizedDays)
+    );
 
   return res.json({ tarix });
 });

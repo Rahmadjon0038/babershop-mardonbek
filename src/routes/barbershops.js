@@ -2,6 +2,7 @@ const express = require("express");
 const db = require("../db");
 const adminMiddleware = require("../middleware/admin");
 const barberMiddleware = require("../middleware/barber");
+const { getUzbekistanDate } = require("../utils/timezone");
 
 const router = express.Router();
 
@@ -725,7 +726,7 @@ router.get("/my-shop", barberMiddleware, (req, res) => {
     .all(myShop.id);
 
   // Bugungi navbatlar
-  const today = new Date().toISOString().split("T")[0];
+  const today = getUzbekistanDate();
   const todayAppointments = db
     .prepare(
       `SELECT 
@@ -837,7 +838,7 @@ router.get("/:id", (req, res) => {
     .all(id);
 
   // Bugungi navbatlar
-  const today = new Date().toISOString().split("T")[0];
+  const today = getUzbekistanDate();
   const todayAppointments = db
     .prepare(
       `SELECT 
